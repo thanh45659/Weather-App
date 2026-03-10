@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+} from "react-native";
 import { getWeatherByCity } from "../api/weatherApi";
 
+const cities = ["Can Tho", "Hanoi", "Ho Chi Minh City"];
+
 export default function Weather() {
-  const [weather, setWeather] = useState(null);
+  const [weatherList, setWeatherList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -11,16 +20,11 @@ export default function Weather() {
     loadWeather();
   }, []);
 
-  const cities = ["Can Tho", "Ha Noi", "Ho Chi Minh"];
-
-  const [weatherList, setWeatherList] = useState([]);
-
   const loadWeather = async () => {
     try {
       const results = await Promise.all(
         cities.map((city) => getWeatherByCity(city)),
       );
-
       setWeatherList(results);
     } catch (err) {
       setError(err.message);
@@ -30,34 +34,89 @@ export default function Weather() {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" />;
+    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
   }
 
   if (error) {
-    return <Text>Lỗi: {error}</Text>;
+    return <Text style={{ color: "red" }}>Lỗi: {error}</Text>;
   }
 
   return (
-    <View style={styles.container}>
-      {weatherList.map((w, index) => (
-        <View key={index} style={{ marginBottom: 15 }}>
-          <Text style={styles.city}>{w.name}</Text>
-          <Text>Nhiệt độ: {w.main.temp}°C</Text>
-          <Text>Thời tiết: {w.weather[0].description}</Text>
-          <Text>Độ ẩm: {w.main.humidity}%</Text>
-        </View>
-      ))}
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      {weatherList.map((w, index) => {
+        const icon = `https://openweathermap.org/img/wn/${w.weather[0].icon}@2x.png`;
+
+        return (
+          <View key={index} style={styles.card}>
+            <Text style={styles.city}>{w.name}</Text>
+
+            <Image source={{ uri: icon }} style={styles.icon} />
+
+            <Text style={styles.temp}>{w.main.temp}°C</Text>
+
+            <Text style={styles.desc}>{w.weather[0].description}</Text>
+
+            <View style={styles.row}>
+              <Text style={styles.info}>💧 {w.main.humidity}%</Text>
+              <Text style={styles.info}>💨 {w.wind.speed} m/s</Text>
+            </View>
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
+    paddingTop: 30,
+    backgroundColor: "#4facfe",
+    minHeight: "100%",
   },
+
+  card: {
+    backgroundColor: "white",
+    width: 280,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
   city: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 8,
+  },
+
+  icon: {
+    width: 80,
+    height: 80,
+  },
+
+  temp: {
+    fontSize: 36,
+    fontWeight: "bold",
+    marginVertical: 5,
+  },
+
+  desc: {
+    fontSize: 16,
+    textTransform: "capitalize",
+    marginBottom: 10,
+  },
+
+  row: {
+    flexDirection: "row",
+    gap: 15,
+  },
+
+  info: {
+    fontSize: 14,
+    color: "#555",
   },
 });

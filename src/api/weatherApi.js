@@ -1,11 +1,8 @@
-const API_KEY = "api";
-
+const API_KEY = process.env.EXPO_PUBLIC_WEATHER_API_KEY;
 export const getWeatherByCity = async (city) => {
   const safeCity = encodeURIComponent(city.trim());
 
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${safeCity}&units=metric&appid=${API_KEY}`;
-
-  console.log("CALL API:", url); // debug
 
   const response = await fetch(url);
 
